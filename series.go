@@ -22,6 +22,7 @@
 package charts
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -313,6 +314,41 @@ func NewLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 		text := strings.ReplaceAll(layout, "{c}", valueText)
 		text = strings.ReplaceAll(text, "{d}", percentText)
 		text = strings.ReplaceAll(text, "{b}", name)
+		text = strings.ReplaceAll(text, "{f}", FormatWithCommas(valueText))
 		return text
 	}
 }
+
+
+func FormatWithCommas(value string) string {
+	parts := strings.Split(value, ".")
+	intPart := parts[0]
+	if len(parts) != 1 {
+		decPart := parts[1]
+
+		var result []byte
+		count := 0
+		for i := len(intPart) - 1; i >= 0; i-- {
+			result = append([]byte{intPart[i]}, result...)
+			count++
+			if count%3 == 0 && i != 0 {
+				result = append([]byte{','}, result...)
+			}
+		}
+
+		return fmt.Sprintf("%s.%s", string(result), decPart)
+	} else {
+		var result []byte
+		count := 0
+		for i := len(intPart) - 1; i >= 0; i-- {
+			result = append([]byte{intPart[i]}, result...)
+			count++
+			if count%3 == 0 && i != 0 {
+				result = append([]byte{','}, result...)
+			}
+		}
+
+		return fmt.Sprintf("%s", string(result))
+	}
+}
+

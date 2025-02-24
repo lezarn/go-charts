@@ -702,11 +702,25 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		if opt.Unit != 0 && (index-opt.First)%opt.Unit != showIndex {
 			continue
 		}
+
+		lines := splitTitleText(text)
+		lineHeight := 0
+		totalHeight := 0
+		lineBoxes := make([]Box, len(lines))
+		for i, line := range lines {
+			lineBox := p.MeasureText(line)
+			lineBoxes[i] = lineBox
+			totalHeight += lineBox.Height()
+			if lineBox.Height() > lineHeight {
+				lineHeight = lineBox.Height()
+			}
+		}
+
 		if isTextRotation {
 			p.ClearTextRotation()
 			p.SetTextRotation(opt.TextRotation)
 		}
-		box := p.MeasureText(text)
+
 		start := values[index]
 		if positionCenter {
 			start = (values[index] + values[index+1]) >> 1
@@ -714,21 +728,30 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		x := 0
 		y := 0
 		if isVertical {
-			y = start + box.Height()>>1
+			y = start - totalHeight>>1
 			switch opt.Align {
 			case AlignRight:
-				x = width - box.Width()
+				x = width - lineBoxes[0].Width()
 			case AlignCenter:
-				x = width - box.Width()>>1
+				x = width - lineBoxes[0].Width()>>1
 			default:
 				x = 0
 			}
 		} else {
-			x = start - box.Width()>>1
+			x = start
 		}
 		x += offset.Left
 		y += offset.Top
-		p.Text(text, x, y)
+		currY := y
+		for lineIdx, line := range lines {
+			lineBox := lineBoxes[lineIdx]
+			lineX := x
+			if !isVertical {
+				lineX = start - lineBox.Width()>>1
+			}
+			p.Text(line, lineX, currY)
+			currY += lineBox.Height()
+		}
 	}
 	if isTextRotation {
 		p.ClearTextRotation()

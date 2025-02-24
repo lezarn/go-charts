@@ -26,6 +26,7 @@ import (
 	"bytes"
 	"errors"
 	"math"
+	"strings"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
@@ -432,7 +433,29 @@ func (p *Painter) Height() int {
 }
 
 func (p *Painter) MeasureText(text string) Box {
-	return p.render.MeasureText(text)
+	lines := strings.Split(text, "\n")
+
+	maxWidth := 0
+	totalHeight := 0
+
+	var result Box
+	result.IsSet = true
+	result.Top = 0
+	result.Left = 0
+
+	for _, line := range lines {
+		box := p.render.MeasureText(line)
+
+		if box.Width() > maxWidth {
+			maxWidth = box.Width()
+			result.Right = maxWidth
+		}
+		totalHeight += box.Height()
+	}
+
+	result.Bottom = totalHeight
+
+	return result
 }
 
 func (p *Painter) MeasureTextMaxWidthHeight(textList []string) (int, int) {

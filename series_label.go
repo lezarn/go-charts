@@ -79,7 +79,6 @@ func NewSeriesLabelPainter(params SeriesLabelPainterParams) *SeriesLabelPainter 
 	}
 }
 
-
 func (o *SeriesLabelPainter) Add(value LabelValue) {
 	label := o.label
 	distance := label.Distance
@@ -142,13 +141,7 @@ func (o *SeriesLabelPainter) Render() (Box, error) {
 		if item.Radians != 0 {
 			o.p.TextRotation(item.Text, item.X, item.Y, item.Radians)
 		} else {
-			lines := splitTitleText(item.Text)
-			yOffset := 0
-			for _, line := range lines {
-				textBox := o.p.MeasureText(line)
-				o.p.Text(line, item.X, item.Y+yOffset)
-				yOffset += textBox.Height()
-			}
+			o.p.Text(item.Text, item.X, item.Y)
 		}
 	}
 	return chart.BoxZero, nil
